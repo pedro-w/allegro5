@@ -97,7 +97,7 @@ static AsyncDialog *spawn_async_file_dialog(ALLEGRO_DISPLAY *display,
    AsyncDialog *data = malloc(sizeof *data);
 
    data->file_dialog = al_create_native_file_dialog(
-      initial_path, "Choose files", NULL,
+      initial_path, "Choose files, 朋友", NULL,
       ALLEGRO_FILECHOOSER_MULTIPLE);
    al_init_user_event_source(&data->event_source);
    data->display = display;
@@ -297,6 +297,9 @@ restart:
           * Otherwise the dialog was cancelled, and we keep the old results.
           */
          if (al_get_native_file_dialog_count(cur_dialog->file_dialog) > 0) {
+            int i;
+            for (i=0; i< al_get_native_file_dialog_count(cur_dialog->file_dialog); ++i)
+               message("selected file %d %s\n", i, al_get_native_file_dialog_path(cur_dialog->file_dialog, i));
             if (old_dialog)
                stop_async_dialog(old_dialog);
             old_dialog = cur_dialog;
@@ -353,7 +356,7 @@ restart:
       "Are you sure?",
       "If you click yes then this example will inevitably close."
       " This is your last chance to rethink your decision."
-      " Do you really want to quit?",
+      " Do you really want to quit, přítele?",
       NULL,
       ALLEGRO_MESSAGEBOX_YES_NO | ALLEGRO_MESSAGEBOX_QUESTION);
    if (button != 1)

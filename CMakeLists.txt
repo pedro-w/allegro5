@@ -832,6 +832,7 @@ if(WIN32)
         set(ALLEGRO_CFG_D3D9EX 1)
     endif(WANT_D3D9EX AND SUPPORT_D3D)
 
+    check_include_files("Windows.h;VersionHelpers.h" ALLEGRO_HAVE_VERSIONHELPERS_H)
 endif(WIN32)
 
 #-----------------------------------------------------------------------------#

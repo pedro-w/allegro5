@@ -41,7 +41,9 @@
 #ifndef WINVER
 #define WINVER 0x0500
 #endif
+#ifndef UNICODE
 #define UNICODE
+#endif
 #include <windows.h>
 #endif
 
