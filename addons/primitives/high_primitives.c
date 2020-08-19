@@ -1250,28 +1250,24 @@ void al_draw_ribbon(const float *points, int points_stride, ALLEGRO_COLOR color,
 {
    LOCAL_VERTEX_CACHE;
    int ii;
-
-   if (num_segments * (thickness > 0 ? 2 : 1) > ALLEGRO_VERTEX_CACHE_SIZE) {
-      ALLEGRO_ERROR("Ribbon has too many segments.\n");
-      return;
+   for (ii = 0; ii < ALLEGRO_VERTEX_CACHE_SIZE; ++ii) {
+      vertex_cache[ii].color = color;
+      vertex_cache[ii].z = 0;
    }
 
-   al_calculate_ribbon(&(vertex_cache[0].x), sizeof(ALLEGRO_VERTEX), points, points_stride, thickness, num_segments);
-   
-   if (thickness > 0) {
-      for (ii = 0; ii < 2 * num_segments; ii++) {
-         vertex_cache[ii].color = color;
-         vertex_cache[ii].z = 0;
+   int max_segments = thickness > 0.0f ? (ALLEGRO_VERTEX_CACHE_SIZE / 2) : ALLEGRO_VERTEX_CACHE_SIZE;
+
+   while (num_segments > 1) {
+      int segment_batch = num_segments > max_segments ? max_segments : num_segments;
+      al_calculate_ribbon(&(vertex_cache[0].x), sizeof(ALLEGRO_VERTEX), points, points_stride, thickness, segment_batch);
+      /* Advance by (segment_batch - 1) because we need to redraw the last point at the start of the next batch */
+      points = (float*)(((char*)points) + points_stride * (segment_batch - 1));
+      num_segments -= (segment_batch - 1);
+      if (thickness > 0) {
+	 al_draw_prim(vertex_cache, 0, 0, 0, 2 * segment_batch, ALLEGRO_PRIM_TRIANGLE_STRIP);
+      } else {
+	 al_draw_prim(vertex_cache, 0, 0, 0, segment_batch, ALLEGRO_PRIM_LINE_STRIP);
       }
-      
-      al_draw_prim(vertex_cache, 0, 0, 0, 2 * num_segments, ALLEGRO_PRIM_TRIANGLE_STRIP);
-   } else {
-      for (ii = 0; ii < num_segments; ii++) {
-         vertex_cache[ii].color = color;
-         vertex_cache[ii].z = 0;
-      }
-      
-      al_draw_prim(vertex_cache, 0, 0, 0, num_segments, ALLEGRO_PRIM_LINE_STRIP);
    }
 }
 
