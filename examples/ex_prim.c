@@ -28,7 +28,7 @@
 
 typedef void (*Screen)(int);
 int ScreenW = 800, ScreenH = 600;
-#define NUM_SCREENS 12
+#define NUM_SCREENS 13
 #define ROTATE_SPEED 0.0001f
 Screen Screens[NUM_SCREENS];
 const char *ScreenName[NUM_SCREENS];
@@ -629,6 +629,37 @@ static void IndexedBuffers(int mode)
       al_destroy_index_buffer(ibuff);
    }
 }
+static void Ribbons(int mode)
+{
+   static int ribbon_size;
+   float points[300 * 2];
+   if (mode == INIT) {
+      ribbon_size = 10;
+   } else if (mode == LOGIC) {
+      ++ribbon_size;
+      if (ribbon_size >= (int)(sizeof(points) / (2 * sizeof(float))))
+	 ribbon_size = 10;
+      Theta += Speed;
+      al_build_transform(&MainTrans, ScreenW / 2, ScreenH / 2, 1, 1, Theta);
+   } else if (mode == DRAW) {
+      int i;
+      for (i=0; i<ribbon_size; ++i) {
+	 double radius = (double) ScreenH  * i / (2.0 * (double) ribbon_size);
+	 double angle = 2.0 * ALLEGRO_PI * i / 30.0;
+	 points[i * 2] = radius * cos(angle);
+	 points[i * 2 + 1] = radius * sin(angle);
+      }
+      if (Blend)
+	 al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ONE);
+      else
+	 al_set_blender(ALLEGRO_ADD, ALLEGRO_ONE, ALLEGRO_ZERO);
+    
+      al_use_transform(&MainTrans);
+      al_draw_ribbon(points, 2 * sizeof(float), al_map_rgb(128, 128, 128), 10.0, ribbon_size);
+      al_draw_ribbon(points, 2 * sizeof(float), al_map_rgb(255, 255, 0), 0.0, ribbon_size);
+      al_use_transform(&Identity);
+   }
+}
 
 int main(int argc, char **argv)
 {
@@ -737,6 +768,7 @@ int main(int argc, char **argv)
    Screens[9] = CustomVertexFormatPrimitives;
    Screens[10] = VertexBuffers;
    Screens[11] = IndexedBuffers;
+   Screens[12] = Ribbons;
 
    ScreenName[0] = "Low Level Primitives";
    ScreenName[1] = "Indexed Primitives";
@@ -750,6 +782,7 @@ int main(int argc, char **argv)
    ScreenName[9] = "Custom Vertex Format";
    ScreenName[10] = "Vertex Buffers";
    ScreenName[11] = "Indexed Buffers";
+   ScreenName[12] = "Ribbons";
 
    for (ii = 0; ii < NUM_SCREENS; ii++) {
       Screens[ii](INIT);
