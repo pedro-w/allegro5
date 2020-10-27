@@ -193,15 +193,22 @@ endif()
 # Build a list of all the API entries. Then cross-reference these against
 # which of the example files make use of them.
 
-file(GLOB EXAMPLE_FILES
-	  ${EXAMPLES_DIR}/*.c
-	  ${EXAMPLES_DIR}/*.cpp)
+set(RESP ${CMAKE_CURRENT_BINARY_DIR}/ex_files)
 
-foreach(x ${EXAMPLE_FILES})
-    file(RELATIVE_PATH xrel ${CMAKE_SOURCE_DIR} ${x})
-    message(${xrel})
-    list(APPEND EXAMPLE_FILES_REL ${xrel})
+file(GLOB EXAMPLE_FILES
+  ${EXAMPLES_DIR}/*.c
+  ${EXAMPLES_DIR}/*.cpp)
+
+file(GLOB EXAMPLE_FILES_REL
+  RELATIVE ${CMAKE_SOURCE_DIR}
+  ${EXAMPLES_DIR}/*.c
+  ${EXAMPLES_DIR}/*.cpp)
+
+foreach(f IN LISTS EXAMPLE_FILES_REL)
+  string(APPEND multiline "${f}\n")
 endforeach()
+
+file(WRITE ${RESP} "${multiline}")
 
 add_custom_command(
     OUTPUT ${API_EXAMPLES}
@@ -209,7 +216,7 @@ add_custom_command(
 	    ${EXAMPLE_FILES}
 	    ${SCAN_EXAMPLES}
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-    COMMAND ${SCAN_EXAMPLES} --protos ${PROTOS} ${EXAMPLE_FILES_REL} > ${API_EXAMPLES})
+    COMMAND ${SCAN_EXAMPLES} --protos ${PROTOS} "@${RESP}" > ${API_EXAMPLES})
 
 #-----------------------------------------------------------------------------#
 #
@@ -278,6 +285,7 @@ if(WANT_DOCS_HTML)
                 ${INSERT_TIMESTAMP} ${CMAKE_SOURCE_DIR}/include/allegro5/base.h > inc.timestamp.html
             COMMAND
                 ${MAKE_DOC}
+                --examples ${API_EXAMPLES}
                 --to html
                 --raise-sections
                 --include-before-body inc.a.html
@@ -299,13 +307,13 @@ if(WANT_DOCS_HTML)
             OUTPUT ${HTML_DIR}/images/${image}.png
             DEPENDS
                 ${SRC_REFMAN_DIR}/images/${image}.png
-            COMMAND 
+            COMMAND
                 "${CMAKE_COMMAND}" -E copy
                 "${SRC_REFMAN_DIR}/images/${image}.png" "${HTML_DIR}/images/${image}.png"
-            ) 
+            )
          list(APPEND HTML_IMAGES ${HTML_DIR}/images/${image}.png)
     endforeach(image)
-    
+
     add_custom_target(html ALL DEPENDS ${HTML_PAGES} ${HTML_IMAGES})
 
     foreach(file pandoc.css autosuggest.js)

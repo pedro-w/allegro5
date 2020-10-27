@@ -16,11 +16,15 @@ typedef struct {
 
 static void sl_init(slist_t *);
 static void sl_free(slist_t *);
+static void sl_clear(slist_t *);
 static void sl_append(slist_t *, const char *);
 
 static void cleanup(void);
 static void load_api_list(void);
 static slist_t apis;
+
+static char **responsefile(int* pargc, char **argv);
+
 
 /* Table of which APIs are in which examples */
 static int *table;
@@ -40,6 +44,7 @@ int main(int argc, char* argv[])
 {
   dstr line;
   int i, j;
+  argv = responsefile(&argc, argv);
   /* Handle --protos flag */
   if (argc >=3 && strcmp(argv[1], "--protos") == 0) {
      strcpy(protos, argv[2]);
@@ -122,15 +127,20 @@ void sl_append(slist_t *s, const char *item)
 
 void sl_free(slist_t *s)
 {
-  int i;
-  for (i = 0; i < s->count; ++i) {
-    free(s->items[i]);
-  }
-  free(s->items);
-  s->items = NULL;
-  s->count = s->capacity = 0;
+   sl_clear(s);
+   free(s->items);
+   s->items = NULL;
+   s->capacity = 0;
 }
 
+void sl_clear(slist_t *s)
+{
+   int i;
+   for (i = 0; i < s->count; ++i) {
+      free(s->items[i]);
+   }
+   s->count = 0;
+}
 void load_api_list(void)
 {
    dstr line;
@@ -152,6 +162,49 @@ void load_api_list(void)
    }
   d_close_input();
 }
+
+/* Re-process the command line args so that any arg of the form
+ * '@FILENAME' means: read FILENAME line-by-line and insert each
+ * line as if it had been in the command line.
+ */
+char **responsefile(int *pargc, char **argv)
+{
+   static slist_t args;
+   static char** new_argv;
+   int argc = *pargc;
+   int i;
+   bool found_at = false;
+   for (i = 1; i < argc; ++i) {
+      if (*argv[i] == '@') {
+	 found_at = true;
+	 break;
+      }
+   }
+   if (!found_at) {
+      /* Nothing to do */
+      return argv;
+   }
+   sl_clear(&args);
+   for (i = 0; i < argc; ++i) {
+      if (*argv[i] == '@') {
+	 d_open_input(argv[i] + 1);
+	 dstr line;
+	 while (d_getline(line)) {
+	    sl_append(&args, line);
+	 }
+	 d_close_input();
+      } else {
+	 sl_append(&args, argv[i]);
+      }
+   }
+   /* Make a copy because code might alter the argv array */
+   new_argv = realloc(new_argv, args.count * sizeof(char*));
+   memcpy(new_argv, args.items, args.count * sizeof(char*));
+   *pargc = args.count;
+   return new_argv;
+}
+
+
 
 /* Local Variables: */
 /* c-basic-offset: 3 */

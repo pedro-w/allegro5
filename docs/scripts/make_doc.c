@@ -33,7 +33,7 @@
 dstr pandoc                = "pandoc";
 dstr pandoc_options        = "";
 dstr protos_file           = "protos";
-dstr examples_file         = "examples";
+dstr examples_file         = "";
 dstr to_format             = "html";
 dstr allegro5_cfg_filename = "";
 bool raise_sections        = false;
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
    argc = process_options(argc, argv);
    load_prototypes(protos_file);
    load_examples(examples_file);
-   
+
    generate_temp_file(tmp_preprocess_output);
    generate_temp_file(tmp_pandoc_output);
    d_cleanup = remove_temp_files;
@@ -173,13 +173,16 @@ static void load_examples(const char *filename)
    const char *name;
    const char *files;
 
+   if (filename == NULL || *filename == '\0') {
+      return;
+   }
+
    d_open_input(filename);
 
    while (d_getline(line)) {
       if (d_match(line, "([^:]*): ")) {
          name = d_submatch(1);
          files = d_after_match;
-
          examples = aa_insert(examples, name, files);
       }
    }
@@ -192,7 +195,7 @@ const char* example_source(dstr buffer, const char *file_name, const char *line_
 	  git_ref, file_name, line_number);
   return buffer;
 }
-  
+
 
 char *load_allegro5_cfg(void)
 {
