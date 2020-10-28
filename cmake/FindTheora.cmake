@@ -10,7 +10,7 @@ if(THEORA_INCLUDE_DIR)
     set(THEORA_FIND_QUIETLY TRUE)
 endif(THEORA_INCLUDE_DIR)
 
-find_package(Ogg)
+find_package(OGG)
 if(OGG_FOUND)
     find_path(THEORA_INCLUDE_DIR theora/theora.h)
     # MSVC built theora may be named *_static

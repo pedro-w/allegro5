@@ -10,7 +10,7 @@ if(OPUS_INCLUDE_DIR)
     set(OPUS_FIND_QUIETLY TRUE)
 endif(OPUS_INCLUDE_DIR)
 
-find_package(Ogg)
+find_package(OGG)
 if(OGG_FOUND)
         find_path(OPUS_INCLUDE_DIR opusfile.h PATH_SUFFIXES opus)
         # MSVC built opus may be named opus_static
