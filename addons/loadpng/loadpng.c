@@ -54,10 +54,10 @@ static void user_error_fn(png_structp png_ptr, png_const_charp message)
  *  Custom read function to use Allegro packfile routines,
  *  rather than C streams (so we can read from datafiles!)
  */
-static void read_data(png_structp png_ptr, png_bytep data, png_uint_32 length)
+static void read_data(png_structp png_ptr, png_bytep data, size_t length)
 {
     PACKFILE *f = (PACKFILE *)png_get_io_ptr(png_ptr);
-    if ((png_uint_32)pack_fread(data, length, f) != length)
+    if ((size_t) pack_fread(data, length, f) != length)
 	png_error(png_ptr, "read error (loadpng calling pack_fread)");
 }
 
@@ -317,7 +317,7 @@ typedef struct {
     png_uint_32 current_pos;
 } MEMORY_READER_STATE;
 
-static void read_data_memory(png_structp png_ptr, png_bytep data, png_uint_32 length)
+static void read_data_memory(png_structp png_ptr, png_bytep data, size_t length)
 {
     MEMORY_READER_STATE *f = (MEMORY_READER_STATE *)png_get_io_ptr(png_ptr);
 

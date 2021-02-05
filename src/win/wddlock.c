@@ -154,7 +154,7 @@ void gfx_directx_lock(BITMAP *bmp)
    BITMAP *parent;
    HRESULT hr;
    DDSURFACEDESC ddsurf_desc;
-   int pitch;
+   ptrdiff_t pitch;
    unsigned char *data;
    int y;
 
@@ -165,7 +165,7 @@ void gfx_directx_lock(BITMAP *bmp)
       bmp->id |= BMP_ID_LOCKED;
 
       /* update the line array if our parent has moved */
-      pitch = (long long)parent->line[1] - (long long)parent->line[0];
+      pitch = parent->line[1] - parent->line[0];
       data = parent->line[0] +
              (bmp->y_ofs - parent->y_ofs) * pitch +
              (bmp->x_ofs - parent->x_ofs) * BYTES_PER_PIXEL(bitmap_color_depth(bmp));
@@ -248,7 +248,7 @@ void gfx_directx_autolock(BITMAP *bmp)
 {
    DDRAW_SURFACE *surf;
    BITMAP *parent;
-   int pitch;
+   ptrdiff_t pitch;
    unsigned char *data;
    int y;
 
@@ -263,7 +263,7 @@ void gfx_directx_autolock(BITMAP *bmp)
       }
 
       /* update the line array if our parent has moved */
-      pitch = (long long)parent->line[1] - (long long)parent->line[0];
+      pitch = parent->line[1] - parent->line[0];
       data = parent->line[0] +
              (bmp->y_ofs - parent->y_ofs) * pitch +
              (bmp->x_ofs - parent->x_ofs) * BYTES_PER_PIXEL(bitmap_color_depth(bmp));

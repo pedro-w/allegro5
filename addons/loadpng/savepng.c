@@ -22,10 +22,10 @@ static void user_error_fn(png_structp png_ptr, png_const_charp message)
  *  Custom write function to use Allegro packfile routines,
  *  rather than C streams.
  */
-static void write_data(png_structp png_ptr, png_bytep data, png_uint_32 length)
+static void write_data(png_structp png_ptr, png_bytep data, size_t length)
 {
     PACKFILE *f = (PACKFILE *)png_get_io_ptr(png_ptr);
-    if ((png_uint_32)pack_fwrite(data, length, f) != length)
+    if ((size_t)pack_fwrite(data, length, f) != length)
 	png_error(png_ptr, "write error (loadpng calling pack_fwrite)");
 }
 
