@@ -422,10 +422,10 @@ static int save_object(DATAFILE *dat, AL_CONST int *fixed_prop, int pack, int pa
       if (should_save_prop(prop->type, fixed_prop, strip)) {
 	 pack_mputl(DAT_PROPERTY, f);
 	 pack_mputl(prop->type, f);
-	 pack_mputl(strlen(prop->dat), f);
-	 if (pack_fwrite(prop->dat, strlen(prop->dat), f) < (signed)strlen(prop->dat))
+	 pack_mputl((long)strlen(prop->dat), f);
+	 if (pack_fwrite(prop->dat, (long)strlen(prop->dat), f) < (signed)strlen(prop->dat))
 	    return FALSE;
-	 file_datasize += 12 + strlen(prop->dat);
+	 file_datasize += 12 + (int) strlen(prop->dat);
       }
 
       prop++;
@@ -876,7 +876,7 @@ void datedit_insert_property(DATAFILE_PROPERTY **prop, int type, AL_CONST char *
 	    strcpy(the_prop->dat, value);
 	 }
 	 else {
-	    *prop = _AL_REALLOC(*prop, sizeof(DATAFILE_PROPERTY)*(size+2));
+	    *prop = _AL_REALLOC(*prop, sizeof(DATAFILE_PROPERTY)*((size_t) size+2));
 	    the_prop = *prop + size;
 	    the_prop->type = type;
 	    the_prop->dat = _AL_MALLOC(strlen(value)+1);
@@ -1176,7 +1176,7 @@ int datedit_save_datafile(DATAFILE *dat, AL_CONST char *name, AL_CONST int *fixe
       datedit_msg("Writing %s", pretty_name);
 
    delete_file(backup_name);
-   rename(pretty_name, backup_name);
+   (void) rename(pretty_name, backup_name);
 
    f = pack_fopen(pretty_name, (pack >= 2) ? F_WRITE_PACKED : F_WRITE_NOPACK);
 
@@ -1207,7 +1207,7 @@ int datedit_save_datafile(DATAFILE *dat, AL_CONST char *name, AL_CONST int *fixe
       delete_file(backup_name);
 
    if (options->verbose) {
-      uint64_t file_filesize = file_size_ex(pretty_name);
+      int file_filesize = (int) file_size_ex(pretty_name);
       datedit_msg("%-28s%7d bytes into %-7d (%d%%)", "- GLOBAL COMPRESSION -",
 		  file_datasize, file_filesize, percent(file_datasize, file_filesize));
    }
@@ -1350,6 +1350,7 @@ static int cond_update_header(AL_CONST char *tn, AL_CONST char *n, int verbose)
 int datedit_save_header(AL_CONST DATAFILE *dat, AL_CONST char *name, AL_CONST char *headername, AL_CONST char *progname, AL_CONST char *prefix, int verbose)
 {
    char *pretty_name, *tmp_name;
+   char *time_str;
    char tm[80];
    char p[80];
    time_t now;
@@ -1387,10 +1388,14 @@ int datedit_save_header(AL_CONST DATAFILE *dat, AL_CONST char *name, AL_CONST ch
    pretty_name = datedit_pretty_name(headername, "h", FALSE);
    datedit_msg("Writing ID's into %s", pretty_name);
 
-   f = fopen(tmp_name, "w");
+   if (tmp_name)
+	   f = fopen(tmp_name, "w");
+   else
+	   f = NULL;
    if (f) {
       time(&now);
-      strcpy(tm, asctime(localtime(&now)));
+	  time_str = asctime(localtime(&now));
+      strcpy(tm, time_str ? time_str : "");
       for (c=0; tm[c]; c++)
 	 if ((tm[c] == '\r') || (tm[c] == '\n'))
 	    tm[c] = 0;
@@ -1549,7 +1554,7 @@ static DATAFILE_PROPERTY *clone_properties(DATAFILE_PROPERTY *prop)
       size++;
    }
 
-   clone = _AL_MALLOC(sizeof(DATAFILE_PROPERTY)*(size+1));
+   clone = _AL_MALLOC(sizeof(DATAFILE_PROPERTY)*((size_t)size+1));
 
    for (i = 0; i <= size; i++) {
        clone[i].type = prop[i].type;
@@ -1785,7 +1790,7 @@ DATAFILE *datedit_grabnew(DATAFILE *dat, AL_CONST DATEDIT_GRAB_PARAMETERS *param
       while (dat[len].type != DAT_END)
 	 len++;
 
-      dat = _AL_REALLOC(dat, sizeof(DATAFILE)*(len+2));
+      dat = _AL_REALLOC(dat, sizeof(DATAFILE)*((size_t)len+2));
       dat[len+1] = dat[len];
       dat[len] = *tmp;
       return dat;
@@ -1805,7 +1810,7 @@ DATAFILE *datedit_insert(DATAFILE *dat, DATAFILE **ret, AL_CONST char *name, int
    while (dat[len].type != DAT_END)
       len++;
 
-   dat = _AL_REALLOC(dat, sizeof(DATAFILE)*(len+2));
+   dat = _AL_REALLOC(dat, sizeof(DATAFILE)*((size_t)len+2));
    dat[len+1] = dat[len];
 
    dat[len].dat = v;

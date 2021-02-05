@@ -409,11 +409,8 @@ int al_findnext(struct al_ffblk *info)
       }
 
       /* try to match file name with pattern */
-      tempname[0] = 0;
-      if (NAMLEN(entry) >= sizeof(tempname))
-         strncat(tempname, entry->d_name, sizeof(tempname) - 1);
-      else
-         strncat(tempname, entry->d_name, NAMLEN(entry));
+      memset(tempname, 0, sizeof(tempname));
+      strncpy(tempname, entry->d_name, sizeof(tempname) - 1);
 
       if (ff_match(tempname, ff_data->pattern)) {
          _al_sane_strncpy(filename, ff_data->dirname, FF_MAXPATHLEN);

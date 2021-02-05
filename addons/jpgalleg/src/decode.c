@@ -215,7 +215,7 @@ read_dht_chunk(void)
 		for (i = 0; i < 16; i++) {
 			if (table->entry_of_length[i])
 				free(table->entry_of_length[i]);
-			table->entry_of_length[i] = (HUFFMAN_ENTRY *)calloc(1 << (i + 1), sizeof(HUFFMAN_ENTRY));
+			table->entry_of_length[i] = (HUFFMAN_ENTRY *)calloc((size_t) (1 << (i + 1)), sizeof(HUFFMAN_ENTRY));
 			if (!table->entry_of_length[i]) {
 				TRACE("Out of memory");
 				jpgalleg_error = JPG_ERROR_OUT_OF_MEMORY;
@@ -707,7 +707,7 @@ decode_progressive_block(intptr_t addr, int type, int *old_dc)
 			/* AC successive approximation */
 			index = spectrum_start;
 			p_bit = 1 << successive_low;
-			n_bit = (-1) << successive_low;
+			n_bit = (int) ((~0U) << successive_low);
 			if (skip_count == 0) {
 				do {
 					data = huffman_decode(ac_table);
@@ -892,7 +892,7 @@ plot_444(intptr_t addr, int pitch, short *y1, short *y2, short *y3, short *y4, s
 				cr_ptr += 4;
 				addr += 12;
 			}
-			addr += (pitch - 24);
+			addr += ((intptr_t)pitch - 24);
 		}
 	}
 }
@@ -922,7 +922,7 @@ plot_422_h(intptr_t addr, int pitch, short *y1, short *y2, short *y3, short *y4,
 		}
 		cb_ptr += 4;
 		cr_ptr += 4;
-		addr += (pitch - 24);
+		addr += ((intptr_t)pitch - 24);
 	}
 }
 
@@ -942,7 +942,7 @@ plot_422_v(intptr_t addr, int pitch, short *y1, short *y2, short *y3, short *y4,
 	for (y = 0; y < 8; y++) {
 		for (x = 0; x < 8; x += 4) {
 			ycbcr2rgb(addr, *y1_ptr, *cb_ptr, *cr_ptr, *(y1_ptr + 1), *(cb_ptr + 1), *(cr_ptr + 1), *(y1_ptr + 2), *(cb_ptr + 2), *(cr_ptr + 2), *(y1_ptr + 3), *(cb_ptr + 3), *(cr_ptr + 3));
-			ycbcr2rgb(addr + (pitch * 8), *y2_ptr, *(cb_ptr + 32), *(cr_ptr + 32), *(y2_ptr + 1), *(cb_ptr + 33), *(cr_ptr + 33), *(y2_ptr + 2), *(cb_ptr + 34), *(cr_ptr + 34), *(y2_ptr + 3), *(cb_ptr + 35), *(cr_ptr + 35));
+			ycbcr2rgb(addr + ((intptr_t)pitch * 8), *y2_ptr, *(cb_ptr + 32), *(cr_ptr + 32), *(y2_ptr + 1), *(cb_ptr + 33), *(cr_ptr + 33), *(y2_ptr + 2), *(cb_ptr + 34), *(cr_ptr + 34), *(y2_ptr + 3), *(cb_ptr + 35), *(cr_ptr + 35));
 			y1_ptr += 4;
 			y2_ptr += 4;
 			cb_ptr += 4;
@@ -952,7 +952,7 @@ plot_422_v(intptr_t addr, int pitch, short *y1, short *y2, short *y3, short *y4,
 		d = (!(y & 1)) * 8;
 		cb_ptr -= d;
 		cr_ptr -= d;
-		addr += (pitch - 24);
+		addr += ((intptr_t)pitch - 24);
 	}
 }
 
@@ -970,8 +970,8 @@ plot_411(intptr_t addr, int pitch, short *y1, short *y2, short *y3, short *y4, s
 		for (x = 0; x < 8; x += 4) {
 			ycbcr2rgb(addr, *y1_ptr, *cb_ptr, *cr_ptr, *(y1_ptr + 1), *cb_ptr, *cr_ptr, *(y1_ptr + 2), *(cb_ptr + 1), *(cr_ptr + 1), *(y1_ptr + 3), *(cb_ptr + 1), *(cr_ptr + 1));
 			ycbcr2rgb(addr + 24, *y2_ptr, *(cb_ptr + 4), *(cr_ptr + 4), *(y2_ptr + 1), *(cb_ptr + 4), *(cr_ptr + 4), *(y2_ptr + 2), *(cb_ptr + 5), *(cr_ptr + 5), *(y2_ptr + 3), *(cb_ptr + 5), *(cr_ptr + 5));
-			ycbcr2rgb(addr + (pitch * 8), *y3_ptr, *(cb_ptr + 32), *(cr_ptr + 32), *(y3_ptr + 1), *(cb_ptr + 32), *(cr_ptr + 32), *(y3_ptr + 2), *(cb_ptr + 33), *(cr_ptr + 33), *(y3_ptr + 3), *(cb_ptr + 33), *(cr_ptr + 33));
-			ycbcr2rgb(addr + (pitch * 8) + 24, *y4_ptr, *(cb_ptr + 36), *(cr_ptr + 36), *(y4_ptr + 1), *(cb_ptr + 36), *(cr_ptr + 36), *(y4_ptr + 2), *(cb_ptr + 37), *(cr_ptr + 37), *(y4_ptr + 3), *(cb_ptr + 37), *(cr_ptr + 37));
+			ycbcr2rgb(addr + ((intptr_t)pitch * 8), *y3_ptr, *(cb_ptr + 32), *(cr_ptr + 32), *(y3_ptr + 1), *(cb_ptr + 32), *(cr_ptr + 32), *(y3_ptr + 2), *(cb_ptr + 33), *(cr_ptr + 33), *(y3_ptr + 3), *(cb_ptr + 33), *(cr_ptr + 33));
+			ycbcr2rgb(addr + ((intptr_t)pitch * 8) + 24, *y4_ptr, *(cb_ptr + 36), *(cr_ptr + 36), *(y4_ptr + 1), *(cb_ptr + 36), *(cr_ptr + 36), *(y4_ptr + 2), *(cb_ptr + 37), *(cr_ptr + 37), *(y4_ptr + 3), *(cb_ptr + 37), *(cr_ptr + 37));
 			y1_ptr += 4;
 			y2_ptr += 4;
 			y3_ptr += 4;
@@ -982,8 +982,7 @@ plot_411(intptr_t addr, int pitch, short *y1, short *y2, short *y3, short *y4, s
 		}
 		d = ((y & 1) * 8) - 4;
 		cb_ptr += d;
-		cr_ptr += d;
-		addr += (pitch - 24);
+		cr_ptr += (pitch - 24);
 	}
 }
 

@@ -602,10 +602,11 @@ static void _output_toc(char *filename, int root, int body, int part)
    char name[256];
    char *s;
    TOC *toc;
+   TOC **ptr = calloc(sizeof(TOC*), TOC_SIZE);
    int nested = 0;
 
    #define ALT_TEXT(toc)   ((toc->alt) ? toc->alt : toc->text)
-
+   assert(ptr);
    if (root) {
       int section_number = 0;
       toc = tochead;
@@ -655,7 +656,6 @@ static void _output_toc(char *filename, int root, int body, int part)
 	 toc = toc->next;
 
       if (part <= 0) {
-	 TOC *ptr[TOC_SIZE];
 	 int i = 0;
 	 if (root)
 	    fprintf(_file, "<ul>\n");
@@ -699,7 +699,6 @@ static void _output_toc(char *filename, int root, int body, int part)
       else if (!(html_flags & HTML_OPTIMIZE_FOR_CHM) &&
                !(html_flags & HTML_OPTIMIZE_FOR_DEVHELP)) {
 	 /* Outputs the function TOC for the current section. */
-	 TOC *ptr[TOC_SIZE];
 	 int j, i = 0;
 	 int section_number = 0;
 	 fprintf(_file, "\n<ul>\n");
@@ -728,6 +727,7 @@ static void _output_toc(char *filename, int root, int body, int part)
 	 fprintf(_file, "</ul>\n");
       }
    }
+   free(ptr);
 }
 
 
@@ -1040,7 +1040,8 @@ static POST *_search_post_section(const char *filename)
  */
 static POST *_search_post_section_with_token(const char *token)
 {
-   int f, g, len;
+   int f, g;
+   size_t len;
    if (!_post)
       return 0;
 
@@ -1053,7 +1054,7 @@ static POST *_search_post_section_with_token(const char *token)
 	    const char *desc = strchr(_post[f]->token[g], ',');
 	    if (desc && (desc - _post[f]->token[g] - 1) == len)
 	       return _post[f];
-	    else if (!desc && strlen(_post[f]->token[g] + 1) == (size_t)len)
+	    else if (!desc && strlen(_post[f]->token[g] + 1) == len)
 	       return _post[f];
 	 }
       }
@@ -1197,7 +1198,7 @@ static void _post_process_filename(char *filename)
 	    printf("Didn't find closing of @SHORTDESC!\n");
 	    abort();
 	 }
-	 desc = _look_up_short_description(p + 11, end - p - 11);
+	 desc = _look_up_short_description(p + 11, (int)(end - p - 11));
 	 if (desc) {
 	    /* Substitute with found test. */
 	    char *temp = m_xmalloc(1 + strlen(line) + strlen(desc));
@@ -1226,7 +1227,7 @@ static void _post_process_filename(char *filename)
    f1 = f2 = 0;
 
    if (remove(filename)) goto cancel;
-   rename(new_filename, filename);
+   (void)rename(new_filename, filename);
 
    cancel:
    if (f1) fclose(f1);

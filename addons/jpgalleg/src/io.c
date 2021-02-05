@@ -98,7 +98,7 @@ _jpeg_putw(int w)
 /* _jpeg_get_bit:
  *  Reads a single bit from the input stream.
  */
-INLINE int
+int
 _jpeg_get_bit(void)
 {
 	if (_jpeg_io.current_bit <= 0) {

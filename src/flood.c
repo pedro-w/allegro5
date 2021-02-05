@@ -53,7 +53,7 @@ static int flooder(BITMAP *bmp, int x, int y, int src_color, int dest_color)
 {
    FLOODED_LINE *p;
    int left = 0, right = 0;
-   unsigned long addr;
+   uintptr_t addr;
    int c;
 
    /* helper for doing checks in each color depth */
@@ -86,20 +86,20 @@ static int flooder(BITMAP *bmp, int x, int y, int src_color, int dest_color)
 
 	 #ifdef ALLEGRO_COLOR8
 	    case 8:
-	       FLOODER(8, 1);
+	       FLOODER(8, sizeof(uint8_t));
 	       break;
 	 #endif
 
 	 #ifdef ALLEGRO_COLOR16
 	    case 15:
 	    case 16:
-	       FLOODER(16, sizeof(short));
+	       FLOODER(16, sizeof(uint16_t));
 	       break;
 	 #endif
 
 	 #ifdef ALLEGRO_COLOR24
 	    case 24:
-	       FLOODER(24, 3);
+	       FLOODER(24, 3*sizeof(uint8_t));
 	       break;
 	 #endif
 

@@ -1,6 +1,6 @@
-/*         ______   ___    ___ 
- *        /\  _  \ /\_ \  /\_ \ 
- *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___ 
+/*         ______   ___    ___
+ *        /\  _  \ /\_ \  /\_ \
+ *        \ \ \L\ \\//\ \ \//\ \      __     __   _ __   ___
  *         \ \  __ \ \ \ \  \ \ \   /'__`\ /'_ `\/\`'__\/ __`\
  *          \ \ \/\ \ \_\ \_ \_\ \_/\  __//\ \L\ \ \ \//\ \L\ \
  *           \ \_\ \_\/\____\/\____\ \____\ \____ \ \_\\ \____/
@@ -49,7 +49,7 @@ SCANLINE_FILLER _optim_alternative_drawer;
 
 
 /* _fill_3d_edge_structure:
- *  Polygon helper function: initialises an edge structure for the 3d 
+ *  Polygon helper function: initialises an edge structure for the 3d
  *  rasterising code, using fixed point vertex structures. Returns 1 on
  *  success, or 0 if the edge is horizontal or clipped out of existence.
  */
@@ -139,7 +139,7 @@ int _fill_3d_edge_structure(POLYGON_EDGE *edge, AL_CONST V3D *v1, AL_CONST V3D *
 	 g2 = getg_depth(coldepth, v2->c);
 	 b1 = getb_depth(coldepth, v1->c);
 	 b2 = getb_depth(coldepth, v2->c);
-      } 
+      }
       else {
 	 r1 = (v1->c >> 16) & 0xFF;
 	 r2 = (v2->c >> 16) & 0xFF;
@@ -184,7 +184,7 @@ int _fill_3d_edge_structure(POLYGON_EDGE *edge, AL_CONST V3D *v1, AL_CONST V3D *
 
 
 /* _fill_3d_edge_structure_f:
- *  Polygon helper function: initialises an edge structure for the 3d 
+ *  Polygon helper function: initialises an edge structure for the 3d
  *  rasterising code, using floating point vertex structures. Returns 1 on
  *  success, or 0 if the edge is horizontal or clipped out of existence.
  */
@@ -275,7 +275,7 @@ int _fill_3d_edge_structure_f(POLYGON_EDGE *edge, AL_CONST V3D_f *v1, AL_CONST V
 	 g2 = getg_depth(coldepth, v2->c);
 	 b1 = getb_depth(coldepth, v1->c);
 	 b2 = getb_depth(coldepth, v2->c);
-      } 
+      }
       else {
 	 r1 = (v1->c >> 16) & 0xFF;
 	 r2 = (v2->c >> 16) & 0xFF;
@@ -320,18 +320,18 @@ int _fill_3d_edge_structure_f(POLYGON_EDGE *edge, AL_CONST V3D_f *v1, AL_CONST V
 
 
 /* _get_scanline_filler:
- *  Helper function for deciding which rasterisation function and 
+ *  Helper function for deciding which rasterisation function and
  *  interpolation flags we should use for a specific polygon type.
  */
 SCANLINE_FILLER _get_scanline_filler(int type, int *flags, POLYGON_SEGMENT *info, BITMAP *texture, BITMAP *bmp)
 {
-   typedef struct POLYTYPE_INFO 
+   typedef struct POLYTYPE_INFO
    {
       SCANLINE_FILLER filler;
       SCANLINE_FILLER alternative;
    } POLYTYPE_INFO;
 
-   static int polytype_interp_pal[] = 
+   static int polytype_interp_pal[] =
    {
       INTERP_FLAT,
       INTERP_1COL,
@@ -350,7 +350,7 @@ SCANLINE_FILLER _get_scanline_filler(int type, int *flags, POLYGON_SEGMENT *info
       INTERP_Z | INTERP_FLOAT_UV | OPT_FLOAT_UV_TO_FIX
    };
 
-   static int polytype_interp_tc[] = 
+   static int polytype_interp_tc[] =
    {
       INTERP_FLAT,
       INTERP_3COL | COLOR_TO_RGB,
@@ -931,8 +931,8 @@ void _clip_polygon_segment_f(POLYGON_SEGMENT *info, int gap, int flags)
 
 
 
-/* draw_polygon_segment: 
- *  Polygon helper function to fill a scanline. Calculates deltas for 
+/* draw_polygon_segment:
+ *  Polygon helper function to fill a scanline. Calculates deltas for
  *  whichever values need interpolating, clips the segment, and then calls
  *  the lowlevel scanline filler.
  */
@@ -971,11 +971,12 @@ static void draw_polygon_segment(BITMAP *bmp, int ytop, int ybottom, POLYGON_EDG
          width = e2->x - e1->x;
 /*
  *  Nasty trick :
- *  In order to avoid divisions by zero, width is set to -1. This way s1 and s2
- *  are still being updated but the scanline is not drawn since w == 0.
+ *  In order to avoid divisions by zero, width is set to -1.0, i.e. -65536.
+ *  This way s1 and s2 are still being updated but the scanline is not drawn
+ *  since w == 0.
  */
 	 if (width == 0)
-	    width = -1 << 16;
+	   width = (fixed) -65536;
 /*
  *  End of nasty trick.
  */
@@ -1051,7 +1052,7 @@ static void draw_polygon_segment(BITMAP *bmp, int ytop, int ybottom, POLYGON_EDG
 
 	 if (w > 0) {
 	    int dx = x * BYTES_PER_PIXEL(bitmap_color_depth(bmp));
-	    
+
 	    if ((flags & OPT_FLOAT_UV_TO_FIX) && (info->dz == 0)) {
 	       float z1 = 1. / info->z;
 	       info->u = info->fu * z1;
@@ -1061,7 +1062,7 @@ static void draw_polygon_segment(BITMAP *bmp, int ytop, int ybottom, POLYGON_EDG
 	       drawer = _optim_alternative_drawer;
 	    }
 
-            if (flags & INTERP_ZBUF) 
+            if (flags & INTERP_ZBUF)
                info->zbuf_addr = bmp_write_line(_zbuffer, y) + x * sizeof(float);
 
 	    info->read_addr = bmp_read_line(bmp, y) + dx;
@@ -1357,7 +1358,7 @@ static void draw_triangle_part(BITMAP *bmp, int ytop, int ybottom, POLYGON_EDGE 
 
 	 if (w > 0) {
 	    int dx = x * BYTES_PER_PIXEL(bitmap_color_depth(bmp));
-	    
+
 	    if (test_optim) {
 	       float z1 = 1. / info->z;
 	       info->u = info->fu * z1;
@@ -1367,7 +1368,7 @@ static void draw_triangle_part(BITMAP *bmp, int ytop, int ybottom, POLYGON_EDGE 
 	       drawer = _optim_alternative_drawer;
 	    }
 
-            if (flags & INTERP_ZBUF) 
+            if (flags & INTERP_ZBUF)
                info->zbuf_addr = bmp_write_line(_zbuffer, y) + x * sizeof(float);
 
 	    info->read_addr = bmp_read_line(bmp, y) + dx;

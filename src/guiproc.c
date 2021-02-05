@@ -1365,17 +1365,17 @@ int d_text_list_proc(int msg, DIALOG *d, int c)
 		  thisitem = (*(getfuncptr)d->dp)(i, NULL);
 		  failure = FALSE;
 
-		  if ((int)((unsigned long long)d->dp3) < ustrlen(thisitem)) {
-		     for (a=0; a < (int)((unsigned long long)d->dp3); a++) {   //64bit unsigned long
-			if (utolower(ugetat(thisitem, a)) != utolower(ugetat(selected, a))) {
+		  if ((int)((intptr_t)d->dp3) < ustrlen(thisitem)) {
+		     for (a=0; a < (int)(intptr_t)d->dp3; a++) {
+		        if (utolower(ugetat(thisitem, a)) != utolower(ugetat(selected, a))) {
 			   failure = TRUE;
 			   break;
 			}
 		     }
 
-		     if ((!failure) && (utolower(ugetat(thisitem, (int)(unsigned long long)d->dp3)) == utolower(c))) {
+		     if ((!failure) && (utolower(ugetat(thisitem, (int)(intptr_t)d->dp3)) == utolower(c))) {
 			d->d1 = i;
-			d->dp3 = (void *)((unsigned long long)d->dp3 + 1);
+			d->dp3 = (void *)((intptr_t)d->dp3 + 1);
 
 			if (sel) {
 			   for (i=0; i<listsize; i++)

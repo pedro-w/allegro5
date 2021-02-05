@@ -777,7 +777,7 @@ int get_num_pixel_formats(HDC dc, int *new_pf_code) {
 	 */
 	if (new_pf_code && *new_pf_code) {
 		int attrib[1];
-		int value[1];
+		int value[1] = {0};
 		
 		TRACE(PREFIX_I "get_num_pixel_formats(): Attempting to use WGL_pf.\n");
 		attrib[0] = WGL_NUMBER_PIXEL_FORMATS_ARB;
@@ -996,7 +996,7 @@ exit_pf:
 		goto bail;
 	}
 	
-	format = malloc((maxindex + 1) * sizeof(format_t));
+	format = malloc(((size_t)maxindex + 1) * sizeof(format_t));
 	
 	if (!format) {
 		TRACE(PREFIX_E "select_pixel_format(): Unable to allocate memory for "
@@ -1557,7 +1557,7 @@ static BITMAP *allegro_gl_win_init(int w, int h, int v_w, int v_h)
 
 		if (fullscreen) {
 			SystemParametersInfo(SPI_SETFOREGROUNDLOCKTIMEOUT,
-			                     0, (LPVOID)lock_time,
+			                     0, (PVOID)(uintptr_t)lock_time,
 			                     SPIF_SENDWININICHANGE | SPIF_UPDATEINIFILE);
 		}
 #undef SPI_GETFOREGROUNDLOCKTIMEOUT
@@ -1754,6 +1754,7 @@ static GFX_MODE_LIST* allegro_gl_win_fetch_mode_list(void)
 {
 	int c, modes_count;
 	GFX_MODE_LIST *mode_list;
+	GFX_MODE* modes;
 	DEVMODE dm;
 
 	dm.dmSize = sizeof(DEVMODE);
@@ -1780,11 +1781,14 @@ static GFX_MODE_LIST* allegro_gl_win_fetch_mode_list(void)
 	modes_count = 0;
 	c = 0;
 	while (EnumDisplaySettings(NULL, c, &dm)) {
-	   	mode_list->mode = realloc(mode_list->mode,
+	   	modes = realloc(mode_list->mode,
 								sizeof(GFX_MODE) * (modes_count + 2));
-		if (!mode_list->mode) {
+		if (!modes) {
+			free(mode_list->mode);
 			free(mode_list);
 			return NULL;
+		} else {
+			mode_list->mode = modes;
 		}
 
 		/* Filter modes with bpp lower than 9, and those which are already

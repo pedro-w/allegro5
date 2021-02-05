@@ -507,7 +507,7 @@ AL_INLINE(void, _putpixel24, (BITMAP *bmp, int x, int y, int color),
 
    bmp_select(bmp);
    addr = bmp_write_line(bmp, y);
-   bmp_write24(addr+x*3, color);
+   bmp_write24(addr+x*(size_t)3, color);
    bmp_unwrite_line(bmp);
 })
 
@@ -519,7 +519,7 @@ AL_INLINE(int, _getpixel24, (BITMAP *bmp, int x, int y),
 
    bmp_select(bmp);
    addr = bmp_read_line(bmp, y);
-   c = bmp_read24(addr+x*3);
+   c = bmp_read24(addr+(uintptr_t)x*3);
    bmp_unwrite_line(bmp);
 
    return c;

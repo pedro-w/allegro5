@@ -646,7 +646,7 @@ void __allegro_gl_print_extensions(AL_CONST char * extension)
 
         while (*extension != '\0') {
                 start = buf;
-                strncpy(buf, extension, 80);
+                _al_sane_strncpy(buf, extension, 80);
                 while ((*start != ' ') && (*start != '\0')) {
                         extension++;
                         start++;

@@ -2184,6 +2184,7 @@ static void initialise_datafile(DATAFILE *data)
 	    s = data[c].dat;
 	    LOCK_DATA(s, sizeof(SAMPLE));
 	    LOCK_DATA(s->data, s->len * ((s->bits==8) ? 1 : sizeof(short)) * ((s->stereo) ? 2 : 1));
+	    (void) s;
 	    break;
 
 	 case DAT_MIDI:

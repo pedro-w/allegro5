@@ -252,11 +252,11 @@ int main() {
 
 	if (allegro_gl_extensions_GL.NV_vertex_program2_option) {
 		glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB,
-		                   strlen(program_nv), program_nv);
+		                   (GLsizei) strlen(program_nv), program_nv);
 	}
 	else {
 		glProgramStringARB(GL_VERTEX_PROGRAM_ARB, GL_PROGRAM_FORMAT_ASCII_ARB,
-		                   strlen(program), program);
+						   (GLsizei) strlen(program), program);
 	}
 
 	/* Check for errors */

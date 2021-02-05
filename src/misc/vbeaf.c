@@ -1293,7 +1293,7 @@ static BITMAP *vbeaf_init(int w, int h, int v_w, int v_h, int color_depth)
    }
 
    /* construct the screen bitmap */
-   b = _make_bitmap(width/bpp, height, (unsigned long)vaddr, &gfx_vbeaf, color_depth, width);
+   b = _make_bitmap(width/bpp, height, (uintptr_t)vaddr, &gfx_vbeaf, color_depth, width);
    if (!b) {
       vbeaf_exit(NULL);
       return NULL;
