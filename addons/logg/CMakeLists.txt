@@ -30,6 +30,7 @@ add_our_library(logg ${ADDON_LINKAGE}
 
 set_target_properties(logg
     PROPERTIES
+    COMPILE_FLAGS "-DLOGG_DYNAMIC -DLOGG_SRC_BUILD"
     LINK_FLAGS "${ALLEGRO_LINK_FLAGS}"
     VERSION ${ALLEGRO_VERSION}
     SOVERSION ${ALLEGRO_SOVERSION}
@@ -58,9 +59,14 @@ endif(NOT WANT_FRAMEWORKS)
 if(WANT_EXAMPLES)
     add_executable(play_ogg play_ogg.c)
     target_link_libraries(play_ogg logg)
-
+    set_target_properties(play_ogg
+      PROPERTIES
+      COMPILE_FLAGS "-DLOGG_DYNAMIC")
     add_executable(stream_ogg stream_ogg.c)
     target_link_libraries(stream_ogg logg)
+    set_target_properties(stream_ogg
+      PROPERTIES
+      COMPILE_FLAGS "-DLOGG_DYNAMIC")
 endif(WANT_EXAMPLES)
 
 #-----------------------------------------------------------------------------#
