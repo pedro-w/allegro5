@@ -36,10 +36,13 @@ add_our_library(jpgalleg ${ADDON_LINKAGE}
     ${JPGALLEG_SOURCES}
     ${JPGALLEG_HEADERS}
     )
+if (BUILD_SHARED_LIBS)
+    set (jpgalleg_dynamic "-DJPGALLEG_DYNAMIC")
+endif (BUILD_SHARED_LIBS)
 
 set_target_properties(jpgalleg
   PROPERTIES
-    COMPILE_FLAGS "-DJPGALLEG_DYNAMIC -DJPGALLEG_SRC_BUILD"
+    COMPILE_FLAGS "-DJPGALLEG_SRC_BUILD ${jpgalleg_dynamic}"
     LINK_FLAGS "${ALLEGRO_LINK_FLAGS}"
     VERSION ${ALLEGRO_VERSION}
     SOVERSION ${ALLEGRO_SOVERSION}
@@ -72,7 +75,7 @@ function(add_our_example nm)
     add_executable(${nm}_jpg WIN32 examples/${nm}.c)
     set_target_properties(${nm}_jpg
         PROPERTIES
-        COMPILE_FLAGS "-DJPGALLEG_DYNAMIC"
+        COMPILE_FLAGS "${jpgalleg_dynamic}"
         OUTPUT_NAME examples/${nm}
         )
     target_link_libraries(${nm}_jpg jpgalleg)

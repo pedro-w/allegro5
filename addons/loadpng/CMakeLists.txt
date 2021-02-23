@@ -31,9 +31,13 @@ add_our_library(loadpng ${ADDON_LINKAGE}
     ${LOADPNG_HEADERS}
     )
 
+if (BUILD_SHARED_LIBS)
+    set (loadpng_dynamic "-DLOADPNG_DYNAMIC")
+endif(BUILD_SHARED_LIBS)
+
 set_target_properties(loadpng
     PROPERTIES
-    COMPILE_FLAGS "-DLOADPNG_DYNAMIC -DLOADPNG_SRC_BUILD"
+    COMPILE_FLAGS "-DLOADPNG_SRC_BUILD ${loadpng_dynamic}"
     LINK_FLAGS "${ALLEGRO_LINK_FLAGS}"
     VERSION ${ALLEGRO_VERSION}
     SOVERSION ${ALLEGRO_SOVERSION}
@@ -69,7 +73,7 @@ function(add_our_example nm)
     add_executable(${nm}_png WIN32 examples/${nm}.c)
     set_target_properties(${nm}_png
         PROPERTIES
-        COMPILE_FLAGS "-DLOADPNG_DYNAMIC"
+        COMPILE_FLAGS " ${loadpng_dynamic}"
         OUTPUT_NAME examples/${nm}
         )
     target_link_libraries(${nm}_png loadpng)

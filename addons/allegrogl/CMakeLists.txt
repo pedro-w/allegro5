@@ -131,10 +131,13 @@ add_our_library(allegrogl ${ADDON_LINKAGE}
     ${ALLEGROGL_SOURCES}
     ${ALLEGROGL_HEADERS}
     )
+if (BUILD_SHARED_LIBS)
+    set (allegro_gl_dynamic "-DALLEGRO_GL_DYNAMIC")
+endif(BUILD_SHARED_LIBS)
 
 set_target_properties(allegrogl
     PROPERTIES
-    COMPILE_FLAGS "-DALLEGRO_GL_SRC_BUILD -DALLEGRO_GL_DYNAMIC"
+    COMPILE_FLAGS "-DALLEGRO_GL_SRC_BUILD ${allegro_gl_dynamic}"
     LINK_FLAGS "${ALLEGRO_LINK_FLAGS}"
     OUTPUT_NAME alleggl
     VERSION ${ALLEGRO_VERSION}
@@ -176,7 +179,7 @@ function(add_our_example nm)
     add_executable(${nm}_agl WIN32 examp/${nm}.c)
     set_target_properties(${nm}_agl
         PROPERTIES
-        COMPILE_FLAGS "-DALLEGRO_GL_DYNAMIC"
+        COMPILE_FLAGS "${allegro_gl_dynamic}"
         OUTPUT_NAME examp/${nm}
         )
     target_link_libraries(${nm}_agl allegrogl)
