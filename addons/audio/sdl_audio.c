@@ -19,6 +19,8 @@ typedef struct SDL_RECORDER
    unsigned int fragment;
 } SDL_RECORDER;
 
+static _AL_LIST* device_list;
+
 static void audio_callback(void *userdata, Uint8 *stream, int len)
 {
    // TODO: Allegro has those mysterious "non-streaming" samples, but I
@@ -91,6 +93,7 @@ static int sdl_allocate_voice(ALLEGRO_VOICE *voice)
 static void sdl_deallocate_voice(ALLEGRO_VOICE *voice)
 {
    SDL_VOICE *sv = voice->extra;
+   _al_list_destroy(device_list);
    SDL_CloseAudioDevice(sv->device);
    al_free(sv);
 }
@@ -209,20 +212,58 @@ static void sdl_deallocate_recorder(ALLEGRO_AUDIO_RECORDER *r)
    al_free(r->extra);
 }
 
+static void _device_list_dtor(void* value, void* userdata)
+{
+   (void)userdata;
+
+   ALLEGRO_AUDIO_DEVICE* device = (ALLEGRO_AUDIO_DEVICE*)value;
+   al_free(device->name);
+}
+
+static _AL_LIST* sdl_get_devices(void)
+{
+   if (!device_list) {
+      device_list = _al_list_create();
+
+      int i, count = SDL_GetNumAudioDevices(0);
+      for (i = 0; i < count; ++i) {
+         int len = strlen(SDL_GetAudioDeviceName(i, 0)) + 1;
+
+         ALLEGRO_AUDIO_DEVICE* device = (ALLEGRO_AUDIO_DEVICE*)al_malloc(sizeof(ALLEGRO_AUDIO_DEVICE));
+         device->name = (char*)al_malloc(len);
+         device->identifier = device->name; // Name returned by SDL2 is used to identify devices.
+         strcpy(device->name, SDL_GetAudioDeviceName(i, 0));
+
+         _al_list_push_back_ex(device_list, device, _device_list_dtor);
+      }
+   }
+
+   return device_list;
+}
+
 ALLEGRO_AUDIO_DRIVER _al_kcm_sdl_driver =
 {
    "SDL",
+   
    sdl_open,
    sdl_close,
+
    sdl_allocate_voice,
    sdl_deallocate_voice,
+
    sdl_load_voice,
    sdl_unload_voice,
+
    sdl_start_voice,
    sdl_stop_voice,
+
    sdl_voice_is_playing,
+
    sdl_get_voice_position,
    sdl_set_voice_position,
+
    sdl_allocate_recorder,
-   sdl_deallocate_recorder
+   sdl_deallocate_recorder,
+
+   sdl_get_devices,
 };

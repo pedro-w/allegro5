@@ -54,10 +54,13 @@ static IDirectSound8 *device;
 static IDirectSoundCapture8 *capture_device; 
 static char ds_err_str[100];
 static int buffer_size; // in bytes
+static _AL_LIST* device_list;
 
 #define MIN_BUFFER_SIZE    1024
 #define MIN_FILL           512
 #define MAX_FILL           1024
+
+static BOOL CALLBACK DSEnumCallback(LPGUID lpGuid, LPCTSTR lpcstrDescription, LPCTSTR lpcstrModule, LPVOID lpContext);
 
 static HWND get_window()
 {
@@ -270,7 +273,11 @@ static int _dsound_open()
    HRESULT hr;
    ALLEGRO_INFO("Starting DirectSound...\n");
 
+   device_list = _al_list_create();
+   DirectSoundEnumerate((LPDSENUMCALLBACK)DSEnumCallback, NULL);
+
    /* FIXME: Use default device until we have device enumeration */
+
    hr = DirectSoundCreate8(NULL, &device, NULL);
    if (FAILED(hr)) {
       ALLEGRO_ERROR("DirectSoundCreate8 failed: %s\n", ds_get_error(hr));
@@ -294,7 +301,10 @@ static int _dsound_open()
 static void _dsound_close()
 {
    ALLEGRO_DEBUG("Releasing device\n");
+   
+   _al_list_destroy(device_list);
    device->Release();
+   
    ALLEGRO_DEBUG("Released device\n");
    ALLEGRO_INFO("DirectSound closed\n");
 }
@@ -807,6 +817,45 @@ void _dsound_close_recorder(ALLEGRO_AUDIO_RECORDER *r) {
    capture_device = NULL;
 }
 
+static void _device_list_dtor(void* value, void* userdata)
+{
+   (void)userdata;
+
+   ALLEGRO_AUDIO_DEVICE* device = (ALLEGRO_AUDIO_DEVICE*)value;
+   al_free(device->name);
+   al_free(device->identifier);
+}
+
+static BOOL CALLBACK DSEnumCallback(
+         LPGUID lpGuid,
+         LPCTSTR lpcstrDescription,
+         LPCTSTR lpcstrModule,
+         LPVOID lpContext) 
+{
+   (void)lpcstrModule;
+   (void)lpContext;
+
+   if (lpGuid != NULL) {
+      size_t desc_size = wcslen(lpcstrDescription) + 1;
+
+      ALLEGRO_AUDIO_DEVICE* device = (ALLEGRO_AUDIO_DEVICE*)al_malloc(sizeof(ALLEGRO_AUDIO_DEVICE));
+      device->identifier = (void*)al_malloc(sizeof(GUID));
+      device->name = (char*)al_malloc(desc_size);
+
+      memcpy(device->identifier, lpGuid, sizeof(GUID));
+      wcstombs(device->name, lpcstrDescription, desc_size);
+
+      _al_list_push_back_ex(device_list, device, _device_list_dtor);
+   }
+
+   return TRUE;
+}
+
+static _AL_LIST* _dsound_get_devices(void)
+{
+   return device_list;
+}
+
 ALLEGRO_AUDIO_DRIVER _al_kcm_dsound_driver = {
    "DirectSound",
 
@@ -828,7 +877,9 @@ ALLEGRO_AUDIO_DRIVER _al_kcm_dsound_driver = {
    _dsound_set_voice_position,
 
    _dsound_open_recorder,
-   _dsound_close_recorder
+   _dsound_close_recorder,
+
+   _dsound_get_devices,
 };
 
 } /* End extern "C" */
