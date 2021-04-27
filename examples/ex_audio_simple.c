@@ -81,6 +81,19 @@ Restart:
       abort_example("Could not set up voice and mixer.\n");
    }
 
+   /* List available Audio Devices */
+   int count = al_get_num_audio_devices();
+   if (count >= 0) {
+     int i;
+     log_printf("Available audio devices\n");
+     for (i=0; i<count; ++i) {
+       ALLEGRO_AUDIO_DEVICE* device = al_get_audio_device(i);
+       log_printf("%d. %s\n", i+1, al_get_audio_device_name(device));
+     }
+   } else {
+     log_printf("Audio device enumeration not supported\n");
+   }
+
    memset(sample_data, 0, sizeof(sample_data));
    for (i = 0; i < argc && i < MAX_SAMPLE_DATA; i++) {
       const char *filename = argv[i];
