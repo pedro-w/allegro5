@@ -1238,7 +1238,13 @@ ALLEGRO_BITMAP *_al_load_bmp_f(ALLEGRO_FILE *f, int flags)
       ALLEGRO_WARN("negative width: %ld\n", infoheader.biWidth);
       return NULL;
    }
-
+   if (infoheader.biCompression != BIT_RGB
+       && infoheader.biCompression != BIT_RLE8
+       && infoheader.biCompression != BIT_RLE4
+       && infoheader.biCompression != BIT_BITFIELDS) {
+      ALLEGRO_ERROR("Unsupported compression: 0x%x\n", (int) infoheader.biCompression);
+      return NULL;
+   }
    if (infoheader.biBitCount != 1 && infoheader.biBitCount != 2 && infoheader.biBitCount != 4 &&
        infoheader.biBitCount != 8 && infoheader.biBitCount != 16 && infoheader.biBitCount != 24 &&
        infoheader.biBitCount != 32) {
@@ -1319,6 +1325,11 @@ ALLEGRO_BITMAP *_al_load_bmp_f(ALLEGRO_FILE *f, int flags)
       int ncolors = infoheader.biClrUsed;
       int extracolors = 0;
       int bytes_per_color = win_flag ? 4 : 3;
+      
+      if (infoheader.biClrUsed >= INT_MAX) {
+         ALLEGRO_ERROR("Illegal palette size: %lu\n", infoheader.biClrUsed);
+         return NULL;
+      }
 
       if (win_flag) {
          if (ncolors == 0) {
