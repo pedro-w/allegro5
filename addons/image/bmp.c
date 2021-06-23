@@ -1120,7 +1120,7 @@ static bool read_RLE4_compressed_image(ALLEGRO_FILE *f, unsigned char *buf,
          if (count > 0) {       /* repeat pixels count times */
 	    if (pos + count > (int)infoheader->biWidth) {
 	       count = infoheader->biWidth - pos;
-	       return false;
+	       // return false; we can step outside if we want?
 	    }
             b[1] = val & 15;
             b[0] = (val >> 4) & 15;
@@ -1152,10 +1152,10 @@ static bool read_RLE4_compressed_image(ALLEGRO_FILE *f, unsigned char *buf,
                   break;
 
                default:        /* read in absolute mode */
-		  count = val;
-                  if (pos + count > (int)infoheader->biWidth) {
-		     return false;
-		  }
+                count = val;
+                if (pos + count > (int)infoheader->biWidth) {
+                  return false;
+                }
 		  for (j = 0; j < count; j++) {
                      if ((j % 4) == 0) {
                         val = (uint16_t)al_fread16le(f);
