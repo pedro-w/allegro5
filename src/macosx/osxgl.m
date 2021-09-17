@@ -161,6 +161,7 @@ static NSOpenGLContext* osx_create_shareable_context(NSOpenGLPixelFormat* fmt, u
 static bool set_display_flag(ALLEGRO_DISPLAY *display, int flag, bool onoff);
 static bool resize_display_win(ALLEGRO_DISPLAY *d, int w, int h);
 static bool resize_display_win_main_thread(ALLEGRO_DISPLAY *d, int w, int h);
+static void _set_window_pos_main_thread(NSWindow* window, int x, int y);
 
 static void clear_to_black(NSOpenGLContext *context)
 {
@@ -1613,14 +1614,7 @@ static ALLEGRO_DISPLAY* create_display_win(int w, int h) {
       
       if ((x != INT_MAX) && (y != INT_MAX)) {
          /* The user gave us window coordinates */
-         NSRect rc = [win frame];
-         NSRect sc = [[win screen] frame];
-         NSPoint origin;
-         
-         /* We need to modify the y coordinate, cf. set_window_position */
-         origin.x = sc.origin.x + x / screen_scale_factor;
-         origin.y = sc.origin.y + sc.size.height - rc.size.height - y / screen_scale_factor;
-         [win setFrameOrigin: origin];
+         _set_window_pos_main_thread(win, x, y);
       }
       else {
          [win center];
@@ -2076,20 +2070,9 @@ static bool resize_display_win_main_thread(ALLEGRO_DISPLAY *d, int w, int h)
    ASSERT_MAIN_THREAD();
    ALLEGRO_DISPLAY_OSX_WIN* dpy = (ALLEGRO_DISPLAY_OSX_WIN*) d;
    NSWindow* window = dpy->win;
-   NSRect current;
-   float scale_factor = 1.0;
-   NSRect content = NSMakeRect(0.0f, 0.0f, (float) w, (float) h);
 
-   current = [window frame];
-#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
-   content = [window convertRectFromBacking: content];
-   if ([window respondsToSelector:@selector(backingScaleFactor)]) {
-      scale_factor = [window backingScaleFactor];
-   }
-#endif
-
-   w = _ALLEGRO_MAX(w, MINIMUM_WIDTH / scale_factor);
-   h = _ALLEGRO_MAX(h, MINIMUM_HEIGHT / scale_factor);
+   w = _ALLEGRO_MAX(w, MINIMUM_WIDTH);
+   h = _ALLEGRO_MAX(h, MINIMUM_HEIGHT);
 
    if (d->use_constraints) {
       if (d->min_w > 0 && w < d->min_w) {
@@ -2112,11 +2095,15 @@ static bool resize_display_win_main_thread(ALLEGRO_DISPLAY *d, int w, int h)
    /* Set new width & height values to content rectangle
     * before calling 'set_frame' below.
     */
-   content.size.width = w / scale_factor;
-   content.size.height = h / scale_factor;
+   NSRect content = NSMakeRect(0.0f, 0.0f, (float) w, (float) h);
+   #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
+   if ([window respondsToSelector:@selector(convertRectFromBacking:)]) {
+      content = [window convertRectFromBacking: content];
+   }
+   #endif
 
    NSRect rc = [window frameRectForContentRect: content];
-   rc.origin = current.origin;
+   rc.origin = [window frame].origin;
    [window setFrame: rc display: YES animate: NO];
 
    clear_to_black(dpy->ctx);
@@ -2208,12 +2195,27 @@ static void set_window_position(ALLEGRO_DISPLAY* display, int x, int y)
     * modified too.
     */
    dispatch_sync(dispatch_get_main_queue(), ^{
-      NSRect rc = [window frame];
-      NSRect sc = [[window screen] frame];
-      rc.origin.x = (float) x;
-      rc.origin.y = sc.size.height - rc.size.height - ((float) y);
-      [window setFrame: rc display: YES animate: NO];
+      _set_window_pos_main_thread(window, x, y);
    });
+}
+
+/* Set the window position.
+ * Used by the inital placement code and by set_window_position
+ * Call from the main thread.
+ */
+void _set_window_pos_main_thread(NSWindow* window, int x, int y)
+{
+   ASSERT_MAIN_THREAD();
+   NSScreen* screen = [window screen];
+   // W & H are arbitrary here as we ignore them
+   NSRect rc = NSMakeRect((CGFloat) x, (CGFloat) y, (CGFloat) 100.0, (CGFloat) 100.0);
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
+   if ([window respondsToSelector:@selector(convertRectFromBacking)]) {
+      rc = [screen convertRectFromBacking:rc];
+   }
+#endif
+   rc.origin.y = [screen frame].size.height - rc.size.height - rc.origin.y;
+   [window setFrameOrigin: rc.origin];
 }
 
 /* get_window_position:
@@ -2227,8 +2229,16 @@ static void get_window_position(ALLEGRO_DISPLAY* display, int* px, int* py)
    ALLEGRO_DISPLAY_OSX_WIN* d = (ALLEGRO_DISPLAY_OSX_WIN*) display;
    NSWindow* window = d->win;
    dispatch_sync(dispatch_get_main_queue(), ^{
+     // TODO retina scaling
+      NSScreen* screen = [window screen];
       NSRect rc = [window frame];
-      NSRect sc = [[window screen] frame];
+      NSRect sc = [screen frame];
+      #if MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
+         if ([window respondsToSelector:@selector(convertRectFromBacking)]) {
+            rc = [screen convertRectToBacking:rc];
+            sc = [screen convertRectToBacking:sc];
+         }
+      #endif
       *px = (int) rc.origin.x;
       *py = (int) (sc.size.height - rc.origin.y - rc.size.height);
    });
