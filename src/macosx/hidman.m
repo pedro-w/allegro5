@@ -382,10 +382,13 @@ HID_DEVICE_COLLECTION *_al_osx_hid_scan(int type, HID_DEVICE_COLLECTION* col)
 			usage = kHIDUsage_GD_Joystick;
 			break;
 		case HID_GAMEPAD:
-			usage=kHIDUsage_GD_GamePad;
+			usage = kHIDUsage_GD_GamePad;
 			break;
+    default:
+      usage = kHIDUsage_Undefined;
+      break;
 	}
-	
+  
 	result = IOMasterPort(bootstrap_port, &master_port);
 	if (result == kIOReturnSuccess) {
 		result = _get_matching_services(master_port, usage_page, usage, &hid_object_iterator);
