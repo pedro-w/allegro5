@@ -251,7 +251,7 @@ void _al_osx_keyboard_was_installed(BOOL install) {
 @end
 
 @implementation ALWindow
-@synthesize display;
+@synthesize allegroDisplay = display;
 
 -(BOOL) canBecomeKeyWindow
 {
@@ -260,7 +260,7 @@ void _al_osx_keyboard_was_installed(BOOL install) {
 // main thread only
 -(void) zoom:(id)sender
 {
-   self.display->flags ^= ALLEGRO_MAXIMIZED;
+   self.allegroDisplay->flags ^= ALLEGRO_MAXIMIZED;
    [super zoom:sender];
 }
 
@@ -1619,7 +1619,7 @@ static ALLEGRO_DISPLAY* create_display_win(int w, int h) {
                          defer: NO
                         screen: screen
        ];
-      alwin.display = (ALLEGRO_DISPLAY *)dpy;
+      alwin.allegroDisplay = (ALLEGRO_DISPLAY *)dpy;
       if (display->flags & ALLEGRO_RESIZABLE) {
          if ([win respondsToSelector:NSSelectorFromString(@"setCollectionBehavior:")]) {
             [win setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];

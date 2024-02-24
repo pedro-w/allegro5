@@ -15,7 +15,7 @@
    ALLEGRO_DISPLAY* display;
 }
 
-@property ALLEGRO_DISPLAY *display;
+@property ALLEGRO_DISPLAY *allegroDisplay;
 
 @end
 
