@@ -313,3 +313,83 @@ The system Allegro is running on.
 Since: 5.2.5
 
 See also: [al_get_system_id]
+
+## Allegro trace routines
+
+A comprehensive tracing system has been implemented for internal
+Allegro use, but is also available for your application.  Calls to the
+tracing routines can be added to your code and then configured via
+`allegro5.cfg` as described in the section on [al_get_system_config].
+The destination for logged information defaults to the file
+`allegro.log` but can be redirected using the `ALLEGRO_TRACE`
+environment variable, or to a custom routine via
+[al_register_trace_handler].
+
+For example:
+
+~~~{.c}
+// In file Entities.cpp
+ALLEGRO_DEBUG_CHANNEL("main");
+...
+void load_entities() {
+ ...
+ ALLEGRO_DEBUG("Loading %s\n", filename);
+ ...
+}
+~~~
+
+Each line of log output takes the form:
+
+~~~
+[channel] [level] [file]:[line] [function] [timestamp] [message]
+~~~
+
+For example:
+
+~~~
+main D Entities.cpp:47 load_entities [ 1.73637] Loading ./Resources/playground.meta.json
+~~~
+
+In order to get output from the trace routines,
+
+* Your application must be compiled with the preprocessor variable
+  `DEBUGMODE` set (for example, add `‑DDEBUGMODE` to the command line
+  arguments for `gcc`)
+* The `allegro5.cfg` must be present *in the same directory* as the
+  executable
+* The options in the config file must be set to activate output from
+  the channels and levels in your application.
+
+## ALLEGRO_DEBUG_CHANNEL
+
+~~~c
+ALLEGRO_DEBUG_CHANNEL(const char *channel_name);
+~~~
+
+Set the channel for output. The channel name is printed in the log. It
+can be used in the `channels=` option of `allegro5.cfg` to selectively
+activate certain channels. Allegro itself uses several channels, and
+each addon has a separate one.The channel name can be freely chosen;
+for most applications it is sufficient to use a single channel but
+more complex ones could use multiple channels.  The
+`ALLEGRO_DEBUG_CHANNEL` macro must be added to the top of every file
+that uses the tracing functions, and can be used only once per file.
+
+## Tracing functions
+
+~~~c
+ALLEGRO_ERROR(const char *msg, ...);
+ALLEGRO_WARN(const char *msg, ...);
+ALLEGRO_INFO(const char *msg, ...);
+ALLEGRO_DEBUG(const char *msg, ...);
+~~~
+
+Add a trace item to the log, at the ERROR, WARN, INFO or DEBUG level respectively. The arguments are the
+same as for the printf function. It is best to end the format string
+with a newline (`\n`).
+
+The `level=` option to `allegro5.cfg` can be set to `debug`, `info`,
+`warn`, `error`, or `none`, indicating the minimum level to log. For
+example `error` will log only traces from `ALLEGRO_ERROR`, whereas
+`info` will log all of `ALLEGRO_INFO`, `ALLEGRO_WARN` and
+`ALLEGRO_ERROR`.
