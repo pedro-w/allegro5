@@ -171,6 +171,9 @@ static void _output_device_list_dtor(void* value, void* userdata)
    al_free(device->identifier);
    al_free(device);
 }
+#ifndef MAC_OS_VERSION_12_0
+#define kAudioObjectPropertyElementMain kAudioObjectPropertyElementMaster
+#endif
 
 static void _aqueue_list_audio_output_devices(void)
 {
